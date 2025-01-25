@@ -1,6 +1,7 @@
 package com.example.caloriesapp.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import com.example.caloriesapp.data.model.Product
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -45,18 +47,16 @@ fun ProductSearchScreen(viewModel: ProductSearchViewModel) {
 
     // Получаем текущее состояние экрана из ViewModel
     val screenState by viewModel.screenState.collectAsState()
-
     // Состояние для отображения Snackbar
     val showSnackbar by viewModel.showSnackbar.collectAsState()
-
     // Сохранённый продукт
     val savedProduct by viewModel.savedProduct.collectAsState()
-
     // Контроллер для управления экранной клавиатурой
     val keyboardController = LocalSoftwareKeyboardController.current
-
     // Менеджер фокуса
     val focusManager = LocalFocusManager.current
+    // FocusRequester для поля ввода веса
+    val focusRequester = remember { FocusRequester() }
 
     // Автоматическое скрытие Snackbar через 4 секунды
     LaunchedEffect(showSnackbar) {
@@ -75,7 +75,7 @@ fun ProductSearchScreen(viewModel: ProductSearchViewModel) {
             .padding(16.dp)
     ) {
         // Верхняя часть: поиск, поле для веса и кнопка
-        SearchBar(viewModel, focusManager)
+        SearchBar(viewModel, focusManager, focusRequester)
 
         // Нижняя часть: выпадающий список (если есть продукты)
         val products by viewModel.products.collectAsState()
@@ -86,7 +86,10 @@ fun ProductSearchScreen(viewModel: ProductSearchViewModel) {
                 items(products) { product ->
                     ProductItem(
                         product = product,
-                        onClick = { viewModel.selectProduct(product) }
+                        onClick = {
+                            viewModel.selectProduct(product)
+                            focusRequester.requestFocus() // Перемещаем фокус в поле ввода веса
+                        }
                     )
                 }
             }
@@ -152,7 +155,7 @@ fun ProductItem(product: Product, onClick: () -> Unit) {
 
 // Строка с полем поиска, кнопкой добавления и весом
 @Composable
-fun SearchBar(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
+fun SearchBar(viewModel: ProductSearchViewModel, focusManager: FocusManager, focusRequester: FocusRequester) {
 
     val searchQuery by viewModel.searchQuery.collectAsState()
     val weightProduct by viewModel.weightProduct.collectAsState()
@@ -164,10 +167,11 @@ fun SearchBar(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically, // Выравниваем элементы по вертикали
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             searchBox(viewModel, focusManager)
-            weightProduct(viewModel, focusManager)
+            weightProduct(viewModel, focusManager, focusRequester)
             addButton(viewModel, focusManager)
         }
     }
@@ -200,14 +204,16 @@ fun searchBox(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
 
 // Окно для ввода веса продуктов
 @Composable
-fun weightProduct(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
+fun weightProduct(viewModel: ProductSearchViewModel, focusManager: FocusManager, focusRequester: FocusRequester) {
     val weightProduct by viewModel.weightProduct.collectAsState()
     Card {
         TextField(
             value = weightProduct,
             onValueChange = { viewModel.updateWeightProduct(it) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth(2 / 3f),
+            modifier = Modifier
+                .fillMaxWidth(0.6f)
+                .focusRequester(focusRequester), // Привязываем FocusRequester
             singleLine = true
         )
     }
