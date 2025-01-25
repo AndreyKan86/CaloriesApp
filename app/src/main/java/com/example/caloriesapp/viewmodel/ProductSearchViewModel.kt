@@ -47,6 +47,8 @@ class ProductSearchViewModel : ViewModel() {
      */
     fun returnToSearch() {
         _screenState.value = ScreenState.Search
+        _searchQuery.value = "" // Очищаем строку поиска
+        // Если нужно, загрузите список продуктов заново
     }
 
     /**
@@ -58,10 +60,11 @@ class ProductSearchViewModel : ViewModel() {
         Log.d("ProductSearchViewModel", "Updating search query: $query")
         _searchQuery.value = query
         viewModelScope.launch {
-            delay(300) // Задержка для дебаунса (чтобы не делать запросы на каждый символ)
+            delay(30) // Задержка для дебаунса (чтобы не делать запросы на каждый символ)
             searchProducts(query) // Поиск продуктов после задержки
         }
     }
+
 
     /**
      * Поиск продуктов по запросу.
@@ -94,8 +97,12 @@ class ProductSearchViewModel : ViewModel() {
      */
     fun selectProduct(product: Product) {
         Log.d("ProductSearchViewModel", "Product selected: ${product.name}")
-        _screenState.value = ScreenState.ProductSelected(product) // Обновление состояния экрана
+        //_screenState.value = ScreenState.ProductSelected(product) // Обновление состояния экрана
         Log.d("ProductSearchViewModel", "New screen state: ${_screenState.value}")
+
+        _selectedProduct.value = product // Сохраняем выбранный продукт
+        _searchQuery.value = product.name // Обновляем строку поиска
+        _products.value = emptyList() // Очищаем список продуктов
     }
 
     /**
