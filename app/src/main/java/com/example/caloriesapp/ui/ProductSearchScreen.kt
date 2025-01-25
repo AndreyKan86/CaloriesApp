@@ -1,29 +1,38 @@
 package com.example.caloriesapp.ui
 
-import android.util.Log
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import com.example.caloriesapp.data.model.Product
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.sp
 import com.example.caloriesapp.viewmodel.ProductSearchViewModel
-import com.example.caloriesapp.viewmodel.ScreenState
+import kotlinx.coroutines.delay
 
 /**
  * Главный экран поиска продуктов.
@@ -34,19 +43,82 @@ import com.example.caloriesapp.viewmodel.ScreenState
 @Composable
 fun ProductSearchScreen(viewModel: ProductSearchViewModel) {
 
-
     // Получаем текущее состояние экрана из ViewModel
     val screenState by viewModel.screenState.collectAsState()
-    // Основной контейнер для отображения содержимого экрана
-    Column {
-        // В зависимости от состояния экрана отображаем либо экран поиска, либо экран выбранного продукта
-        when (val state = screenState) {
-            is ScreenState.Search -> {
-                SearchScreen(viewModel) // Экран поиска продуктов
-            }
 
-            is ScreenState.ProductSelected -> {
-                viewModel.returnToSearch() // Функция для возврата к поиску
+    // Состояние для отображения Snackbar
+    val showSnackbar by viewModel.showSnackbar.collectAsState()
+
+    // Сохранённый продукт
+    val savedProduct by viewModel.savedProduct.collectAsState()
+
+    // Контроллер для управления экранной клавиатурой
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    // Менеджер фокуса
+    val focusManager = LocalFocusManager.current
+
+    // Автоматическое скрытие Snackbar через 4 секунды
+    LaunchedEffect(showSnackbar) {
+        if (showSnackbar) {
+            delay(4000) // 4 секунды
+            viewModel.hideSnackbar()
+            keyboardController?.hide() // Скрываем клавиатуру
+            focusManager.clearFocus() // Убираем фокус с текстового поля
+        }
+    }
+
+    // Основной контейнер для отображения содержимого экрана
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // Верхняя часть: поиск, поле для веса и кнопка
+        SearchBar(viewModel, focusManager)
+
+        // Нижняя часть: выпадающий список (если есть продукты)
+        val products by viewModel.products.collectAsState()
+        if (products.isNotEmpty()) {
+            LazyColumn(
+                modifier = Modifier.weight(1f) // Занимает оставшееся пространство
+            ) {
+                items(products) { product ->
+                    ProductItem(
+                        product = product,
+                        onClick = { viewModel.selectProduct(product) }
+                    )
+                }
+            }
+        }
+    }
+
+    // Отображение Snackbar
+    if (showSnackbar) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            contentAlignment = Alignment.BottomCenter // Размещаем Snackbar внизу экрана
+        ) {
+            Snackbar(
+                action = {
+                    Button(
+                        onClick = {
+                            viewModel.hideSnackbar() // Скрываем Snackbar
+                            keyboardController?.hide() // Скрываем клавиатуру
+                            focusManager.clearFocus() // Убираем фокус с текстового поля
+                        }
+                    ) {
+                        Text("OK")
+                    }
+                },
+                modifier = Modifier.padding(8.dp)
+            ) {
+                // Отображаем информацию о сохранённом продукте
+                savedProduct?.let { product ->
+                    Text("Сохранён продукт: ${product.product.name}, вес: ${product.weight}")
+                }
             }
         }
     }
@@ -66,7 +138,6 @@ fun ProductItem(product: Product, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth() // Занимает всю доступную ширину
             .clickable {
-                Log.d("ProductItem", "Product clicked: ${product.name}") // Логируем нажатие
                 onClick() // Вызываем переданную функцию onClick
             }
             .padding(8.dp) // Отступы вокруг карточки
@@ -79,32 +150,25 @@ fun ProductItem(product: Product, onClick: () -> Unit) {
     }
 }
 
-
+// Строка с полем поиска, кнопкой добавления и весом
 @Composable
-fun SearchBar(viewModel: ProductSearchViewModel) {
-    // Подписываемся на searchQuery из ViewModel
-    val searchQuery by viewModel.searchQuery.collectAsState()
+fun SearchBar(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        TextField(
-            value = searchQuery, // Используем значение из StateFlow
-            onValueChange = { newQuery ->
-                viewModel.updateSearchQuery(newQuery) // Обновляем значение в ViewModel
-            },
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val weightProduct by viewModel.weightProduct.collectAsState()
+    val selectedProduct by viewModel.selectedProduct.collectAsState()
+
+    Column {
+        // Поиск и поле для веса
+        Row(
             modifier = Modifier
-                .weight(1f)
-                .padding(end = 8.dp),
-            label = { Text("Введите название продукта") }
-        )
-        Button(
-            onClick = { /* Обработка нажатия */ }
+                .fillMaxWidth()
+                .padding(5.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Поиск")
+            searchBox(viewModel, focusManager)
+            weightProduct(viewModel, focusManager)
+            addButton(viewModel, focusManager)
         }
     }
 }
@@ -116,32 +180,65 @@ fun SearchBar(viewModel: ProductSearchViewModel) {
  * @param viewModel ViewModel, которая управляет состоянием экрана.
  */
 @Composable
-fun SearchScreen(viewModel: ProductSearchViewModel) {
+fun searchBox(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val products by viewModel.products.collectAsState()
 
-    Column(modifier = Modifier.padding(16.dp))
-    {
-        Card() {
+    Column(modifier = Modifier.padding(5.dp)) {
+        Card {
             TextField(
                 value = searchQuery,
                 onValueChange = { newQuery ->
                     viewModel.updateSearchQuery(newQuery)
                 },
                 label = { Text("Введите название продукта") },
-                modifier = Modifier.fillMaxWidth(2 / 3f)
+                modifier = Modifier.fillMaxWidth(0.65f)
             )
         }
-            // Отображаем список продуктов только если он не пустой
-        if (products.isNotEmpty()) {
-            LazyColumn(modifier = Modifier.fillMaxWidth(2 / 3f)) {
-                items(products) { product ->
-                    ProductItem(
-                        product = product,
-                        onClick = { viewModel.selectProduct(product) }
-                    )
-                }
-            }
+    }
+}
+
+// Окно для ввода веса продуктов
+@Composable
+fun weightProduct(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
+    val weightProduct by viewModel.weightProduct.collectAsState()
+    Card {
+        TextField(
+            value = weightProduct,
+            onValueChange = { viewModel.updateWeightProduct(it) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth(2 / 3f),
+            singleLine = true
+        )
+    }
+}
+
+@Composable
+fun addButton(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
+    val weightProduct by viewModel.weightProduct.collectAsState()
+    val selectedProduct by viewModel.selectedProduct.collectAsState()
+
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.TopEnd // Выравниваем кнопку в верхнем правом углу
+    ) {
+        Button(
+            onClick = {
+                viewModel.saveProductData(weightProduct, selectedProduct)
+                viewModel.clearFields()
+                focusManager.clearFocus() // Убираем фокус с текстового поля
+            },
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .size(56.dp)
+                .clip(CircleShape)
+        ) {
+            Text(
+                text = "+",
+                color = Color.White,
+                fontSize = 32.sp,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
