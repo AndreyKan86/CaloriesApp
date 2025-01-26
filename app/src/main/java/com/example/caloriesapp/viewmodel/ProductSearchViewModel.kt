@@ -140,13 +140,19 @@ class ProductSearchViewModel : ViewModel() {
                 Log.d("ProductSearchViewModel", "Saving data: weight=$weight, product=${product.name}")
 
                 // Создаём объект SavedProduct
-                val savedProduct = SavedProduct(product, weight)
+                val savedProduct = SavedProduct(
+                    name = product.name, // Название продукта
+                    bgu = product.bgu, // БЖУ
+                    kcal = product.kcal, // Ккал
+                    weight = weight // Вес
+                )
 
                 // Сохраняем его в переменную
                 _savedProduct.value = savedProduct
 
                 // Показываем Snackbar
                 _showSnackbar.value = true
+                Log.d("ProductSearchViewModel", "Snackbar state: ${_showSnackbar.value}") // Логируем состояние
 
                 // Очищаем поля
                 clearFields()
@@ -160,6 +166,5 @@ class ProductSearchViewModel : ViewModel() {
     fun hideSnackbar() {
         _showSnackbar.value = false
     }
-
 }
 

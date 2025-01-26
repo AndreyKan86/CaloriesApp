@@ -8,7 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.caloriesapp.ui.ProductSearchScreen
+import com.example.caloriesapp.ui.composable.ProductSearchScreen
 import com.example.caloriesapp.viewmodel.ProductSearchViewModel
 
 class MainActivity : ComponentActivity() {

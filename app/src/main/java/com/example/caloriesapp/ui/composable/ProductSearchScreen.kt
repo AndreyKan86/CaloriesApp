@@ -1,4 +1,4 @@
-package com.example.caloriesapp.ui
+package com.example.caloriesapp.ui.composable
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -120,7 +120,7 @@ fun ProductSearchScreen(viewModel: ProductSearchViewModel) {
             ) {
                 // Отображаем информацию о сохранённом продукте
                 savedProduct?.let { product ->
-                    Text("Сохранён продукт: ${product.product.name}, вес: ${product.weight}")
+                    Text("Сохранён продукт: ${product.name}, вес: ${product.weight}")
                 }
             }
         }
