@@ -66,6 +66,7 @@ class ProductSearchViewModel : ViewModel() {
      * @param query Новый поисковый запрос.
      */
     fun updateSearchQuery(query: String) {
+        Log.d("ProductSearchViewModel", "Updating search query: $query") // Логируем запрос
         _searchQuery.value = query
         viewModelScope.launch {
             delay(30) // Задержка для дебаунса (чтобы не делать запросы на каждый символ)
@@ -90,6 +91,8 @@ class ProductSearchViewModel : ViewModel() {
         viewModelScope.launch {
             // Загрузка всех продуктов из сети
             val allProducts = loadProductsFromNetwork()
+            Log.d("ProductSearchViewModel", "All products: ${allProducts.size}") // Логируем общее количество продуктов
+
             // Фильтрация и сортировка продуктов
             val filteredProducts = allProducts
                 .filter { product ->
@@ -101,34 +104,28 @@ class ProductSearchViewModel : ViewModel() {
                         else -> 1 // Остальные продукты
                     }
                 }
+            Log.d("ProductSearchViewModel", "Filtered products: ${filteredProducts.size}") // Логируем количество отфильтрованных продуктов
+
             _products.value = filteredProducts // Обновление списка продуктов
         }
     }
 
-    /**
-     * Выбор продукта.
-     *
-     * @param product Выбранный продукт.
-     */
     fun selectProduct(product: Product) {
         _selectedProduct.value = product // Сохраняем выбранный продукт
         _searchQuery.value = product.name // Обновляем строку поиска
         _products.value = emptyList() // Очищаем список продуктов
     }
 
-    /**
-     * Загрузка продуктов из сети.
-     *
-     * @return Список продуктов.
-     */
     private suspend fun loadProductsFromNetwork(): List<Product> {
         return try {
-            RetrofitClient.instance.getProducts() // Загрузка продуктов через Retrofit
+            val products = RetrofitClient.instance.getProducts() // Загрузка продуктов через Retrofit
+            Log.d("ProductSearchViewModel", "Loaded ${products.size} products from network") // Логируем количество продуктов
+            products
         } catch (e: Exception) {
+            Log.e("ProductSearchViewModel", "Error loading products from network", e) // Логируем ошибку
             emptyList() // Возвращаем пустой список в случае ошибки
         }
     }
-
 
     fun saveProductData(weight: String, product: Product?) {
         viewModelScope.launch {

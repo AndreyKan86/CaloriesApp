@@ -2,11 +2,10 @@ package com.example.caloriesapp.ui.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.caloriesapp.data.model.SavedProduct
 import com.example.caloriesapp.data.repository.SavedProductRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -16,13 +15,12 @@ class SavedProductViewModel(application: Application) : AndroidViewModel(applica
     // Репозиторий для работы с базой данных
     private val repository = SavedProductRepository(application)
 
-    // LiveData для наблюдения за списком продуктов
+    // StateFlow для наблюдения за списокм продуктов
     private val _allProducts = MutableStateFlow<List<SavedProduct>>(emptyList())
     val allProducts: StateFlow<List<SavedProduct>> get() = _allProducts
 
-    // Загрузить все продукты из базы данных
     fun loadAllProducts() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) { // Используем Dispatchers.IO для работы с базой данных
             _allProducts.value = repository.getAll()
         }
     }

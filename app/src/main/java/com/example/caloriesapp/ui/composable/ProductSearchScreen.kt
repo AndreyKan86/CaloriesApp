@@ -1,10 +1,12 @@
 package com.example.caloriesapp.ui.composable
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import com.example.caloriesapp.data.model.Product
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
@@ -33,94 +36,110 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.caloriesapp.data.model.SavedProduct
 import com.example.caloriesapp.viewmodel.ProductSearchViewModel
 import kotlinx.coroutines.delay
 
-/**
- * Главный экран поиска продуктов.
- * Отображает либо экран поиска, либо экран выбранного продукта в зависимости от состояния.
- *
- * @param viewModel ViewModel, которая управляет состоянием экрана.
- */
+//Функция вызова экрана поиска
 @Composable
 fun ProductSearchScreen(viewModel: ProductSearchViewModel) {
-
-    // Получаем текущее состояние экрана из ViewModel
-    val screenState by viewModel.screenState.collectAsState()
-    // Состояние для отображения Snackbar
     val showSnackbar by viewModel.showSnackbar.collectAsState()
-    // Сохранённый продукт
     val savedProduct by viewModel.savedProduct.collectAsState()
-    // Контроллер для управления экранной клавиатурой
+    val products by viewModel.products.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
-    // Менеджер фокуса
     val focusManager = LocalFocusManager.current
-    // FocusRequester для поля ввода веса
     val focusRequester = remember { FocusRequester() }
 
-    // Автоматическое скрытие Snackbar через 4 секунды
     LaunchedEffect(showSnackbar) {
         if (showSnackbar) {
-            delay(4000) // 4 секунды
+            delay(2000)
             viewModel.hideSnackbar()
-            keyboardController?.hide() // Скрываем клавиатуру
-            focusManager.clearFocus() // Убираем фокус с текстового поля
+            keyboardController?.hide()
+            focusManager.clearFocus()
         }
     }
 
-    // Основной контейнер для отображения содержимого экрана
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Верхняя часть: поиск, поле для веса и кнопка
         SearchBar(viewModel, focusManager, focusRequester)
-
-        // Нижняя часть: выпадающий список (если есть продукты)
-        val products by viewModel.products.collectAsState()
-        if (products.isNotEmpty()) {
-            LazyColumn(
-                modifier = Modifier.weight(1f) // Занимает оставшееся пространство
-            ) {
-                items(products) { product ->
-                    ProductItem(
-                        product = product,
-                        onClick = {
-                            viewModel.selectProduct(product)
-                            focusRequester.requestFocus() // Перемещаем фокус в поле ввода веса
-                        }
-                    )
-                }
+        ProductList(
+            products = products,
+            onProductClick = { product ->
+                viewModel.selectProduct(product)
+                focusRequester.requestFocus()
             }
-        }
+        )
     }
 
-    // Отображение Snackbar
+    ProductSnackbar(
+        showSnackbar = showSnackbar,
+        savedProduct = savedProduct,
+        onDismiss = {
+            viewModel.hideSnackbar()
+            keyboardController?.hide()
+            focusManager.clearFocus()
+        }
+    )
+}
+
+//Функция всплывающего окна
+@Composable
+private fun ProductSnackbar(
+    showSnackbar: Boolean,
+    savedProduct: SavedProduct?,
+    onDismiss: () -> Unit
+) {
     if (showSnackbar) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            contentAlignment = Alignment.BottomCenter // Размещаем Snackbar внизу экрана
+            contentAlignment = Alignment.BottomCenter
         ) {
             Snackbar(
                 action = {
-                    Button(
-                        onClick = {
-                            viewModel.hideSnackbar() // Скрываем Snackbar
-                            keyboardController?.hide() // Скрываем клавиатуру
-                            focusManager.clearFocus() // Убираем фокус с текстового поля
-                        }
-                    ) {
+                    Button(onClick = onDismiss) {
                         Text("OK")
                     }
                 },
                 modifier = Modifier.padding(8.dp)
             ) {
-                // Отображаем информацию о сохранённом продукте
                 savedProduct?.let { product ->
                     Text("Сохранён продукт: ${product.name}, вес: ${product.weight}")
+                }
+            }
+        }
+    }
+}
+
+//Функция выпадающего списка продуктов
+@Composable
+private fun ProductList(
+    products: List<Product>,
+    onProductClick: (Product) -> Unit
+) {
+    if (products.isNotEmpty()) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .zIndex(1f) // Поднимаем список выше
+                    .alpha(0.7f) // Полупрозрачность
+                    .fillMaxWidth()
+                    .heightIn(max = 200.dp) // Ограничиваем высоту
+            ) {
+                items(products) { product ->
+                    ProductItem(
+                        product = product,
+                        onClick = { onProductClick(product) }
+                    )
                 }
             }
         }
@@ -139,16 +158,15 @@ fun ProductItem(product: Product, onClick: () -> Unit) {
     // Карточка продукта
     Card(
         modifier = Modifier
-            .fillMaxWidth() // Занимает всю доступную ширину
+            .fillMaxWidth()
             .clickable {
-                onClick() // Вызываем переданную функцию onClick
+                onClick()
             }
-            .padding(8.dp) // Отступы вокруг карточки
+            .padding(8.dp)
     ) {
-        // Текст с названием продукта
         Text(
             text = "${product.name}",
-            modifier = Modifier.padding(16.dp) // Отступы внутри карточки
+            modifier = Modifier.padding(16.dp)
         )
     }
 }
@@ -162,12 +180,11 @@ fun SearchBar(viewModel: ProductSearchViewModel, focusManager: FocusManager, foc
     val selectedProduct by viewModel.selectedProduct.collectAsState()
 
     Column {
-        // Поиск и поле для веса
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp),
-            verticalAlignment = Alignment.CenterVertically, // Выравниваем элементы по вертикали
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             searchBox(viewModel, focusManager)
@@ -177,12 +194,7 @@ fun SearchBar(viewModel: ProductSearchViewModel, focusManager: FocusManager, foc
     }
 }
 
-/**
- * Экран поиска продуктов.
- * Содержит поле для ввода поискового запроса и список продуктов.
- *
- * @param viewModel ViewModel, которая управляет состоянием экрана.
- */
+//Окно поиска продуктов
 @Composable
 fun searchBox(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -219,6 +231,7 @@ fun weightProduct(viewModel: ProductSearchViewModel, focusManager: FocusManager,
     }
 }
 
+//Кнопка добавления продуктов
 @Composable
 fun addButton(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
     val weightProduct by viewModel.weightProduct.collectAsState()
@@ -248,3 +261,4 @@ fun addButton(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
         }
     }
 }
+

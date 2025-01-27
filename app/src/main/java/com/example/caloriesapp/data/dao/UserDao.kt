@@ -12,9 +12,9 @@ interface UserDao {
     fun insert(savedProduct: SavedProduct): Long
 
     @Query("SELECT * FROM saved_products")
-    fun getAll(): List<SavedProduct> // Получение всех записей
+    fun getAll(): List<SavedProduct>
 
     @Query("DELETE FROM saved_products WHERE id = :id")
-    fun deleteById(id: Int) // Удаление по ID
+    fun deleteById(id: Int)
 }
 
