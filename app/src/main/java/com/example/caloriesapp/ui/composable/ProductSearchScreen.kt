@@ -7,11 +7,13 @@ import com.example.caloriesapp.data.model.Product
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -62,7 +64,6 @@ fun ProductSearchScreen(viewModel: AppViewModel) {
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
             .padding(16.dp)
     ) {
         SearchBar(viewModel, focusManager, focusRequester)
@@ -96,7 +97,6 @@ private fun ProductSnackbar(
     if (showSnackbar) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(16.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
@@ -118,12 +118,12 @@ private fun ProductSnackbar(
 
 //Функция выпадающего списка продуктов
 @Composable
-private fun ProductList(
+fun ProductList(
     products: List<Product>,
     onProductClick: (Product) -> Unit
 ) {
     if (products.isNotEmpty()) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box() {
             LazyColumn(
                 modifier = Modifier
                     .zIndex(1f)
@@ -167,14 +167,24 @@ fun SearchBar(viewModel: AppViewModel, focusManager: FocusManager, focusRequeste
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(5.dp),
-                //.height(IntrinsicSize.Min),
+                .padding(5.dp)
+                .height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.SpaceBetween
+            //horizontalArrangement = Arrangement.Start
         ) {
-            searchBox(viewModel, focusManager)
-            weightProduct(viewModel, focusManager, focusRequester)
-            addButton(viewModel, focusManager)
+            Box(modifier = Modifier.weight(3f))
+            {
+                searchBox(viewModel, focusManager)
+            }
+            Box(modifier = Modifier.weight(1.2f))
+            {
+                weightProduct(viewModel, focusManager, focusRequester)
+            }
+            Box(modifier = Modifier.width(56.dp))
+            {
+                addButton(viewModel, focusManager)
+            }
         }
     }
 }
@@ -192,7 +202,7 @@ fun searchBox(viewModel: AppViewModel, focusManager: FocusManager) {
                     viewModel.updateSearchQuery(newQuery)
                 },
                 label = { Text("Введите название продукта") },
-                modifier = Modifier.fillMaxWidth(0.65f)
+                //modifier = Modifier.fillMaxWidth(0.65f)
             )
         }
     }
@@ -208,7 +218,7 @@ fun weightProduct(viewModel: AppViewModel, focusManager: FocusManager, focusRequ
             onValueChange = { viewModel.updateWeightProduct(it) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier
-                .fillMaxWidth(0.6f)
+                //.fillMaxWidth(0.6f)
                 .focusRequester(focusRequester),
             singleLine = true
         )
