@@ -1,38 +1,43 @@
 package com.example.caloriesapp.ui.composable
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.caloriesapp.ui.viewmodel.SavedProductViewModel
-import com.example.caloriesapp.viewmodel.ProductSearchViewModel
+import com.example.caloriesapp.viewmodel.AppViewModel
 
 
-//Функция для отображения двух экранов
 @Composable
 fun SplitScreen() {
-    val firstViewModel: ProductSearchViewModel = viewModel()
-    val secondViewModel: SavedProductViewModel = viewModel()
+    val firstViewModel: AppViewModel = viewModel()
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .background(Color.Green)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()
+            .background(Color.White),
+            contentAlignment = Alignment.Center
 
-    Column(modifier = Modifier.fillMaxSize()
-        /* .height(IntrinsicSize.Min)*/){
-        // Верхняя половина экрана
-        Box(modifier = Modifier
-            .weight(1f)
-            //.height(IntrinsicSize.Min) для минимизации экрана
-
-
-        ) {
-            ProductSearchScreen(viewModel = firstViewModel)
+        )
+        {
+            SavedProductsScreen(viewModel = firstViewModel)
         }
 
-        HorizontalDivider(color = Color.Black, thickness = 2.dp)
-
-        Box(modifier = Modifier.weight(3f)) {
-            ProductListScreen(viewModel = secondViewModel)
+        Box(
+        )
+        {
+            ProductSearchScreen(viewModel = firstViewModel)
         }
     }
 }

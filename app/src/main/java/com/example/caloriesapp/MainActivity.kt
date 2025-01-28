@@ -7,12 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.caloriesapp.ui.composable.ProductListScreen
-import com.example.caloriesapp.ui.composable.ProductSearchScreen
 import com.example.caloriesapp.ui.composable.SplitScreen
-import com.example.caloriesapp.ui.viewmodel.SavedProductViewModel
-import com.example.caloriesapp.viewmodel.ProductSearchViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

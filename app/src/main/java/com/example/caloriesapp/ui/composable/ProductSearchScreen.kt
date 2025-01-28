@@ -1,15 +1,15 @@
 package com.example.caloriesapp.ui.composable
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import com.example.caloriesapp.data.model.Product
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,17 +37,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.example.caloriesapp.data.model.SavedProduct
-import com.example.caloriesapp.viewmodel.ProductSearchViewModel
+import com.example.caloriesapp.viewmodel.AppViewModel
 import kotlinx.coroutines.delay
 
 //Функция вызова экрана поиска
 @Composable
-fun ProductSearchScreen(viewModel: ProductSearchViewModel) {
+fun ProductSearchScreen(viewModel: AppViewModel) {
     val showSnackbar by viewModel.showSnackbar.collectAsState()
     val savedProduct by viewModel.savedProduct.collectAsState()
     val products by viewModel.products.collectAsState()
@@ -130,10 +126,9 @@ private fun ProductList(
         Box(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier
-                    .zIndex(1f) // Поднимаем список выше
-                    .alpha(0.7f) // Полупрозрачность
+                    .zIndex(1f)
+                    .alpha(0.7f)
                     .fillMaxWidth()
-                    .heightIn(max = 200.dp) // Ограничиваем высоту
             ) {
                 items(products) { product ->
                     ProductItem(
@@ -146,16 +141,9 @@ private fun ProductList(
     }
 }
 
-/**
- * Элемент списка продуктов.
- * Отображает карточку с названием продукта и обрабатывает нажатие на неё.
- *
- * @param product Продукт, который нужно отобразить.
- * @param onClick Функция, которая вызывается при нажатии на продукт.
- */
+//Элемент списка продуктов
 @Composable
 fun ProductItem(product: Product, onClick: () -> Unit) {
-    // Карточка продукта
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -173,19 +161,16 @@ fun ProductItem(product: Product, onClick: () -> Unit) {
 
 // Строка с полем поиска, кнопкой добавления и весом
 @Composable
-fun SearchBar(viewModel: ProductSearchViewModel, focusManager: FocusManager, focusRequester: FocusRequester) {
-
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val weightProduct by viewModel.weightProduct.collectAsState()
-    val selectedProduct by viewModel.selectedProduct.collectAsState()
+fun SearchBar(viewModel: AppViewModel, focusManager: FocusManager, focusRequester: FocusRequester) {
 
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp),
+                //.height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.Start
         ) {
             searchBox(viewModel, focusManager)
             weightProduct(viewModel, focusManager, focusRequester)
@@ -196,9 +181,8 @@ fun SearchBar(viewModel: ProductSearchViewModel, focusManager: FocusManager, foc
 
 //Окно поиска продуктов
 @Composable
-fun searchBox(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
+fun searchBox(viewModel: AppViewModel, focusManager: FocusManager) {
     val searchQuery by viewModel.searchQuery.collectAsState()
-    val products by viewModel.products.collectAsState()
 
     Column(modifier = Modifier.padding(5.dp)) {
         Card {
@@ -216,7 +200,7 @@ fun searchBox(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
 
 // Окно для ввода веса продуктов
 @Composable
-fun weightProduct(viewModel: ProductSearchViewModel, focusManager: FocusManager, focusRequester: FocusRequester) {
+fun weightProduct(viewModel: AppViewModel, focusManager: FocusManager, focusRequester: FocusRequester) {
     val weightProduct by viewModel.weightProduct.collectAsState()
     Card {
         TextField(
@@ -225,7 +209,7 @@ fun weightProduct(viewModel: ProductSearchViewModel, focusManager: FocusManager,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier
                 .fillMaxWidth(0.6f)
-                .focusRequester(focusRequester), // Привязываем FocusRequester
+                .focusRequester(focusRequester),
             singleLine = true
         )
     }
@@ -233,19 +217,19 @@ fun weightProduct(viewModel: ProductSearchViewModel, focusManager: FocusManager,
 
 //Кнопка добавления продуктов
 @Composable
-fun addButton(viewModel: ProductSearchViewModel, focusManager: FocusManager) {
+fun addButton(viewModel: AppViewModel, focusManager: FocusManager) {
     val weightProduct by viewModel.weightProduct.collectAsState()
     val selectedProduct by viewModel.selectedProduct.collectAsState()
 
     Box(
         modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.TopEnd // Выравниваем кнопку в верхнем правом углу
+        contentAlignment = Alignment.TopEnd
     ) {
         Button(
             onClick = {
                 viewModel.saveProductData(weightProduct, selectedProduct)
                 viewModel.clearFields()
-                focusManager.clearFocus() // Убираем фокус с текстового поля
+                focusManager.clearFocus()
             },
             modifier = Modifier
                 .padding(top = 4.dp)
