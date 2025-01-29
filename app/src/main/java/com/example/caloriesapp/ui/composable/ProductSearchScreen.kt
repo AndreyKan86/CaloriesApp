@@ -186,7 +186,7 @@ fun SearchBar(viewModel: AppViewModel, focusManager: FocusManager, focusRequeste
                     top.linkTo(parent.top)
                     start.linkTo(box1.end, margin = 16.dp)
                     end.linkTo(box3.start)
-                    width = Dimension.value(80.dp)
+                    width = Dimension.value(56.dp)
                 }
             )
             {

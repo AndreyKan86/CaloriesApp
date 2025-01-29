@@ -4,10 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,13 +54,16 @@ fun SavedProductsScreen(viewModel: AppViewModel = viewModel()) {
 @Composable
 fun ProductItem(product: SavedProduct, viewModel: AppViewModel, tableData: MutableList<List<String>>) {
     val bguData = viewModel.BGU(product.bgu)
+    val protein = viewModel.convertBGU(bguData?.protein) * viewModel.convertBGU(product.weight) / 100.0
+    val fats = viewModel.convertBGU(bguData?.fats) * viewModel.convertBGU(product.weight) / 100.0
+    val carbohydrates = viewModel.convertBGU(bguData?.carbohydrates) * viewModel.convertBGU(product.weight) / 100.0
     tableData.add(
         listOf(
             product.name,
             product.kcal,
-            (viewModel.convertBGU(bguData?.protein) * viewModel.convertBGU(product.weight) / 100.0).toString(),
-            (viewModel.convertBGU(bguData?.fats) * viewModel.convertBGU(product.weight) / 100.0).toString(),
-            (viewModel.convertBGU(bguData?.carbohydrates) * viewModel.convertBGU(product.weight) / 100.0).toString(),
+            String.format("%.3f",protein),
+            String.format("%.3f",fats),
+            String.format("%.3f", carbohydrates),
             product.weight
         )
     )
@@ -89,6 +94,7 @@ fun SixColumnTable(data: List<List<String>>) {
         }
     }
 }
+
 
 @Composable
 fun TableCell(text: String, isHeader: Boolean = false) {

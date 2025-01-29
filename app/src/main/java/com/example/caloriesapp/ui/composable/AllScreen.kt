@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,12 +31,7 @@ fun SplitScreen() {
     ConstraintLayout( modifier = Modifier.background(Color.Green)
         .fillMaxWidth()
     ) {
-
         val (box1, box2) = createRefs()
-
-        var box1Height by remember { mutableStateOf(0) }
-        val density = LocalDensity.current
-
         Box( modifier = Modifier
             .constrainAs(box1) {
                 top.linkTo(parent.top)
@@ -43,24 +39,20 @@ fun SplitScreen() {
                 end.linkTo(parent.end)
             }
             .fillMaxWidth()
-            .onGloballyPositioned { coordinates ->
-                box1Height = with(density) { coordinates.size.height }
-            }
             .zIndex(1f)
         )
         {
             ProductSearchScreen(viewModel = firstViewModel)
-            Text(text = "box1 height: $box1Height")
         }
 
         Box(modifier = Modifier
-            .width(400.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
             .height(600.dp)
             .background(Color.Blue)
             .constrainAs(box2) {
                 top.linkTo(parent.top, margin = 100.dp)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
+                centerHorizontallyTo(parent)
             }
             .zIndex(0f),
             contentAlignment = Alignment.TopCenter
