@@ -1,7 +1,7 @@
 package com.example.caloriesapp.ui.composable
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import com.example.caloriesapp.data.model.Product
 import androidx.compose.foundation.layout.Column
@@ -27,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -39,6 +38,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import com.example.caloriesapp.data.model.SavedProduct
 import com.example.caloriesapp.viewmodel.AppViewModel
 import kotlinx.coroutines.delay
@@ -162,50 +163,65 @@ fun ProductItem(product: Product, onClick: () -> Unit) {
 // Строка с полем поиска, кнопкой добавления и весом
 @Composable
 fun SearchBar(viewModel: AppViewModel, focusManager: FocusManager, focusRequester: FocusRequester) {
-
-    Column {
-        Row(
+        ConstraintLayout(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp)
-                .height(IntrinsicSize.Min),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-            //horizontalArrangement = Arrangement.Start
+                .background(Color.LightGray)
         ) {
-            Box(modifier = Modifier.weight(3f))
+            val (box1, box2, box3) = createRefs()
+            Box(
+                modifier = Modifier.constrainAs(box1){
+                    top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(box2.start)
+                    width = Dimension.fillToConstraints
+                }
+            )
             {
                 searchBox(viewModel, focusManager)
             }
-            Box(modifier = Modifier.weight(1.2f))
+            Box(
+                modifier = Modifier.constrainAs(box2){
+                    top.linkTo(parent.top)
+                    start.linkTo(box1.end, margin = 16.dp)
+                    end.linkTo(box3.start)
+                    width = Dimension.value(80.dp)
+                }
+            )
             {
                 weightProduct(viewModel, focusManager, focusRequester)
             }
-            Box(modifier = Modifier.width(56.dp))
+            Box(
+                modifier = Modifier.constrainAs(box3){
+                    top.linkTo(parent.top)
+                    start.linkTo(box2.end, margin = 16.dp)
+                    end.linkTo(parent.end)
+                    width = Dimension.value(56.dp)
+                }
+            )
             {
                 addButton(viewModel, focusManager)
             }
         }
-    }
 }
 
 //Окно поиска продуктов
 @Composable
 fun searchBox(viewModel: AppViewModel, focusManager: FocusManager) {
     val searchQuery by viewModel.searchQuery.collectAsState()
-
-    Column(modifier = Modifier.padding(5.dp)) {
-        Card {
+        Box(
+            Modifier.fillMaxWidth()
+        ) {
             TextField(
                 value = searchQuery,
                 onValueChange = { newQuery ->
                     viewModel.updateSearchQuery(newQuery)
                 },
                 label = { Text("Введите название продукта") },
-                //modifier = Modifier.fillMaxWidth(0.65f)
+                modifier = Modifier.fillMaxWidth()
             )
         }
-    }
 }
 
 // Окно для ввода веса продуктов
@@ -218,7 +234,7 @@ fun weightProduct(viewModel: AppViewModel, focusManager: FocusManager, focusRequ
             onValueChange = { viewModel.updateWeightProduct(it) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier
-                //.fillMaxWidth(0.6f)
+                .fillMaxWidth()
                 .focusRequester(focusRequester),
             singleLine = true
         )
@@ -231,9 +247,8 @@ fun addButton(viewModel: AppViewModel, focusManager: FocusManager) {
     val weightProduct by viewModel.weightProduct.collectAsState()
     val selectedProduct by viewModel.selectedProduct.collectAsState()
 
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.TopEnd
+    Card(
+        modifier = Modifier.fillMaxWidth()
     ) {
         Button(
             onClick = {
@@ -242,9 +257,8 @@ fun addButton(viewModel: AppViewModel, focusManager: FocusManager) {
                 focusManager.clearFocus()
             },
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(top = 4.dp)
-                .size(56.dp)
-                .clip(CircleShape)
         ) {
             Text(
                 text = "+",

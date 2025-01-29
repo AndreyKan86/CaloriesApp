@@ -3,6 +3,9 @@ package com.example.caloriesapp.ui.composable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,6 +28,7 @@ import com.example.caloriesapp.viewmodel.AppViewModel
 fun SplitScreen() {
     val firstViewModel: AppViewModel = viewModel()
     ConstraintLayout( modifier = Modifier.background(Color.Green)
+        .fillMaxWidth()
     ) {
 
         val (box1, box2) = createRefs()
@@ -35,9 +39,10 @@ fun SplitScreen() {
         Box( modifier = Modifier
             .constrainAs(box1) {
                 top.linkTo(parent.top)
-                start.linkTo(parent.start)
+                start.linkTo(parent.start, margin = 16.dp)
                 end.linkTo(parent.end)
             }
+            .fillMaxWidth()
             .onGloballyPositioned { coordinates ->
                 box1Height = with(density) { coordinates.size.height }
             }
@@ -49,17 +54,16 @@ fun SplitScreen() {
         }
 
         Box(modifier = Modifier
-            .fillMaxSize()
+            .width(400.dp)
+            .height(600.dp)
             .background(Color.Blue)
             .constrainAs(box2) {
-                top.linkTo(parent.top, margin = box1Height.dp)
-                bottom.linkTo(parent.bottom)
+                top.linkTo(parent.top, margin = 100.dp)
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
             }
             .zIndex(0f),
             contentAlignment = Alignment.TopCenter
-
         )
         {
             SavedProductsScreen(viewModel = firstViewModel)
