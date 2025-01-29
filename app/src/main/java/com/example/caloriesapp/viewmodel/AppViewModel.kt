@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.caloriesapp.data.model.BguData
 import com.example.caloriesapp.data.model.Product
 import com.example.caloriesapp.data.model.SavedProduct
 import com.example.caloriesapp.data.repository.SavedProductRepository
@@ -163,4 +164,24 @@ class AppViewModel(application: Application) : AndroidViewModel(application)  {
             emptyList()
         }
     }
+
+    fun convertBGU(str: String?): Double {
+        return str?.toDoubleOrNull() ?: 0.0
+    }
+
+    fun BGU(bgu: String): BguData?{
+        val parts = bgu.split(",")
+        if (parts.size != 3) {
+            return null
+        }
+        return try {
+            val protein = parts[0].trim()
+            val fats = parts[1].trim()
+            val carbohydrates = parts[2].trim()
+            BguData(protein, fats, carbohydrates)
+        } catch (e: NumberFormatException) {
+            null
+        }
+    }
+
 }

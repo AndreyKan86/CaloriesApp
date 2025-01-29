@@ -11,3 +11,5 @@ data class SavedProduct(
     val kcal: String, // Ккал
     val weight: String // Вес
 )
+
+data class BguData(val protein: String, val fats: String, val carbohydrates: String)
