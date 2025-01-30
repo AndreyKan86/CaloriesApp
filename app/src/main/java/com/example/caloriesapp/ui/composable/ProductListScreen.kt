@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -20,7 +21,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -68,7 +71,10 @@ fun SavedProductsScreen(viewModel: AppViewModel = viewModel()) {
                 .fillMaxWidth()
         ) {
             items(allSavedProducts, key = { it.id }) { product ->
-                ProductItemRow(product = product, viewModel = viewModel)
+                Column {
+                    ProductItemRow(product = product, viewModel = viewModel)
+                    HorizontalDivider(color = Color.Gray, thickness = 1.dp)
+                }
             }
         }
 
@@ -82,7 +88,8 @@ fun SavedProductsScreen(viewModel: AppViewModel = viewModel()) {
                 String.format("%.2f", totals["totalWeight"])
             ),
             weights = listOf(2f, 1f, 1f, 1f, 1f, 1f),
-            rowBackgroundColor = Color.Red
+            rowBackgroundColor = Color.DarkGray,
+            rowTextColor = Color.White
         )
     }
 }
@@ -115,11 +122,11 @@ fun ProductItemRow(product: SavedProduct, viewModel: AppViewModel) {
     SixColumnTableRow(
         data = listOf(
             product.name,
-            product.kcal,
-            product.protein,
-            product.fats,
-            product.carbohydrates,
-            product.weight
+            String.format("%.2f", product.kcal.toDouble()),
+            String.format("%.2f", product.protein.toDouble()),
+            String.format("%.2f", product.fats.toDouble()),
+            String.format("%.2f", product.carbohydrates.toDouble()),
+            String.format("%.2f", product.weight.toDouble())
         ),
         weights = listOf(2f, 1f, 1f, 1f, 1f, 1f),
         rowBackgroundColor = Color.LightGray,
@@ -154,7 +161,8 @@ fun SixColumnTableRow(
                     },
                 backgroundColor = if (isHeader) headerBackgroundColor else rowBackgroundColor,
                 textColor = if (isHeader) headerTextColor else rowTextColor,
-                fontWeight = if (isHeader) headerFontWeight else rowFontWeight
+                fontWeight = if (isHeader) headerFontWeight else rowFontWeight,
+                showDivider = index < data.size - 1
             )
         }
     }
@@ -167,7 +175,8 @@ fun TableCell(
     modifier: Modifier = Modifier,
     backgroundColor: Color = if (isHeader) Color.Gray else Color.LightGray,
     textColor: Color = Color.Black,
-    fontWeight: FontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal
+    fontWeight: FontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
+    showDivider: Boolean = false
 ) {
     Box(
         modifier = modifier
@@ -176,13 +185,25 @@ fun TableCell(
             .height(40.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = text,
-            textAlign = TextAlign.Center,
-            color = textColor,
-            fontWeight = fontWeight,
-            maxLines = 1,
-            overflow = TextOverflow.Visible
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = text,
+                textAlign = TextAlign.Center,
+                color = textColor,
+                fontWeight = fontWeight,
+                maxLines = 1,
+                overflow = TextOverflow.Visible,
+                modifier = Modifier.weight(1f)
+            )
+            if (showDivider) {
+                VerticalDivider(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(vertical = 4.dp)
+                        .width(1.dp),
+                    color = Color.Gray
+                )
+            }
+        }
     }
 }

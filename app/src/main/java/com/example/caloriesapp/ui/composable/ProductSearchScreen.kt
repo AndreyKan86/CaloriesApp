@@ -1,22 +1,13 @@
 package com.example.caloriesapp.ui.composable
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import com.example.caloriesapp.data.model.Product
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -170,7 +161,6 @@ fun SearchBar(viewModel: AppViewModel, focusManager: FocusManager, focusRequeste
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp)
-                .background(Color.LightGray)
         ) {
             val (box1, box2, box3) = createRefs()
             Box(
@@ -182,18 +172,18 @@ fun SearchBar(viewModel: AppViewModel, focusManager: FocusManager, focusRequeste
                 }
             )
             {
-                searchBox(viewModel, focusManager)
+                searchBox(viewModel)
             }
             Box(
                 modifier = Modifier.constrainAs(box2){
                     top.linkTo(parent.top)
                     start.linkTo(box1.end, margin = 16.dp)
                     end.linkTo(box3.start)
-                    width = Dimension.value(56.dp)
+                    width = Dimension.value(80.dp)
                 }
             )
             {
-                weightProduct(viewModel, focusManager, focusRequester)
+                weightProduct(viewModel, focusRequester)
             }
             Box(
                 modifier = Modifier.constrainAs(box3){
@@ -211,11 +201,9 @@ fun SearchBar(viewModel: AppViewModel, focusManager: FocusManager, focusRequeste
 
 //Окно поиска продуктов
 @Composable
-fun searchBox(viewModel: AppViewModel, focusManager: FocusManager) {
+fun searchBox(viewModel: AppViewModel) {
     val searchQuery by viewModel.searchQuery.collectAsState()
-        Box(
-            Modifier.fillMaxWidth()
-        ) {
+        Card() {
             TextField(
                 value = searchQuery,
                 onValueChange = { newQuery ->
@@ -229,7 +217,7 @@ fun searchBox(viewModel: AppViewModel, focusManager: FocusManager) {
 
 // Окно для ввода веса продуктов
 @Composable
-fun weightProduct(viewModel: AppViewModel, focusManager: FocusManager, focusRequester: FocusRequester) {
+fun weightProduct(viewModel: AppViewModel, focusRequester: FocusRequester) {
     val weightProduct by viewModel.weightProduct.collectAsState()
     Card {
         TextField(
@@ -250,9 +238,7 @@ fun addButton(viewModel: AppViewModel, focusManager: FocusManager) {
     val weightProduct by viewModel.weightProduct.collectAsState()
     val selectedProduct by viewModel.selectedProduct.collectAsState()
 
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+
         Button(
             onClick = {
                 viewModel.saveProductData(weightProduct, selectedProduct)
@@ -270,6 +256,5 @@ fun addButton(viewModel: AppViewModel, focusManager: FocusManager) {
                 textAlign = TextAlign.Center
             )
         }
-    }
 }
 

@@ -16,3 +16,8 @@ data class SavedProduct(
 
 data class BguData(val protein: String, val fats: String, val carbohydrates: String)
 
+data class Product (
+    val name: String, // Имя продукта
+    val bgu: String, // БЖУ, записано в виде "X,Y,Z" на 100 грамм
+    val kcal: String // Килокалории на 100 грамм
+)

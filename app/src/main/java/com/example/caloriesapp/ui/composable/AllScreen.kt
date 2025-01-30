@@ -19,7 +19,7 @@ import com.example.caloriesapp.viewmodel.AppViewModel
 @Composable
 fun SplitScreen() {
     val firstViewModel: AppViewModel = viewModel()
-    ConstraintLayout( modifier = Modifier.background(Color.Black)
+    ConstraintLayout( modifier = Modifier
         .fillMaxSize()
     ) {
         val (box1, box2) = createRefs()
@@ -38,10 +38,10 @@ fun SplitScreen() {
 
         Box(modifier = Modifier
             .fillMaxSize()
-            .padding(top = 80.dp)
+            .padding(top = 100.dp)
             .padding(horizontal = 8.dp)
-            .padding(bottom = 100.dp)
-            .background(Color.Blue)
+            .padding(bottom = 20.dp)
+            .background(Color.LightGray)
             .constrainAs(box2) {
                 top.linkTo(parent.top)
                 centerHorizontallyTo(parent)

@@ -52,7 +52,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application)  {
     private val _allSavedProducts = MutableStateFlow<List<SavedProduct>>(emptyList())
     val allSavedProducts: StateFlow<List<SavedProduct>> get() = _allSavedProducts
 
-    // Методы из ProductSearchViewModel
     fun updateWeightProduct(newWeight: String) {
         _weightProduct.value = newWeight
     }
@@ -78,7 +77,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application)  {
     }
 
     fun saveProductData(weight: String, product: Product?) {
-        viewModelScope.launch(Dispatchers.IO) { // Используем Dispatchers.IO для работы с базой данных
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 if (product == null) {
                     Log.e("CombinedViewModel", "Product is null")
