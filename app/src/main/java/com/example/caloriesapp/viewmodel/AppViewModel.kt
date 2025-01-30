@@ -17,26 +17,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Состояния экрана:
- * - Search: Экран поиска продуктов.
- * - ProductSelected: Экран с выбранным продуктом.
- */
+
 sealed class ScreenState {
     object Search : ScreenState() // Состояние поиска
     data class ProductSelected(val product: Product) : ScreenState() // Состояние выбранного продукта
 }
 
-/**
- * ViewModel для экрана поиска продуктов.
- * Управляет состоянием экрана, поиском и выбором продуктов.
- */
+
 class AppViewModel(application: Application) : AndroidViewModel(application)  {
 
-    // Репозиторий для работы с базой данных
     private val repository = SavedProductRepository(application)
 
-    // Состояния из ProductSearchViewModel
     private val _screenState = MutableStateFlow<ScreenState>(ScreenState.Search)
     val screenState: StateFlow<ScreenState> get() = _screenState
 
@@ -58,7 +49,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application)  {
     private val _selectedProduct = MutableStateFlow<Product?>(null)
     val selectedProduct: StateFlow<Product?> get() = _selectedProduct
 
-    // Состояния из SavedProductViewModel
     private val _allSavedProducts = MutableStateFlow<List<SavedProduct>>(emptyList())
     val allSavedProducts: StateFlow<List<SavedProduct>> get() = _allSavedProducts
 
@@ -96,28 +86,33 @@ class AppViewModel(application: Application) : AndroidViewModel(application)  {
                 }
                 Log.d("CombinedViewModel", "Saving data: weight=$weight, product=${product.name}")
 
-                // Создаём объект SavedProduct
+                val bguData = BGU(product.bgu)
+
+                val kcalForSave = product.kcal.replace(",", ".").toDoubleOrNull()?:0.0
+                val proteinForSave = bguData.protein.replace(",", ".").toDoubleOrNull()?:0.0
+                val fatsForSave = bguData.fats.replace(",", ".").toDoubleOrNull()?:0.0
+                val carbohydratesForSave = bguData.carbohydrates.replace(",", ".").toDoubleOrNull()?:0.0
+                val weightForSave = weight.replace(",", ".").toDoubleOrNull()?:0.0
+
                 val savedProduct = SavedProduct(
                     name = product.name,
-                    bgu = product.bgu,
-                    kcal = product.kcal,
-                    weight = weight
+                    kcal = (kcalForSave * weightForSave / 100).toString(),
+                    protein = (proteinForSave * weightForSave / 100).toString(),
+                    fats = (fatsForSave * weightForSave / 100).toString(),
+                    carbohydrates = (carbohydratesForSave * weightForSave / 100).toString(),
+                    weight = weightForSave.toString()
                 )
 
-                // Сохраняем его в переменную
                 _savedProduct.value = savedProduct
 
-                // Вставляем продукт в базу данных
                 repository.insert(savedProduct)
                 loadAllSavedProducts()
 
-                // Показываем Snackbar (возвращаемся на главный поток)
                 withContext(Dispatchers.Main) {
                     _showSnackbar.value = true
                     Log.d("CombinedViewModel", "Snackbar state: ${_showSnackbar.value}")
                 }
 
-                // Очищаем поля
                 clearFields()
             } catch (e: Exception) {
                 Log.e("CombinedViewModel", "Error saving product data", e)
@@ -129,24 +124,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application)  {
         _showSnackbar.value = false
     }
 
-    // Методы из SavedProductViewModel
     fun loadAllSavedProducts() {
         viewModelScope.launch(Dispatchers.IO) {
             _allSavedProducts.value = repository.getAll()
-        }
-    }
-
-    fun insert(savedProduct: SavedProduct) {
-        viewModelScope.launch {
-            repository.insert(savedProduct)
-            loadAllSavedProducts()
-        }
-    }
-
-    fun deleteById(id: Int) {
-        viewModelScope.launch {
-            repository.deleteById(id)
-            loadAllSavedProducts()
         }
     }
 
@@ -165,14 +145,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application)  {
         }
     }
 
-    fun convertBGU(str: String?): Double {
-        return str?.toDoubleOrNull() ?: 0.0
-    }
-
-    fun BGU(bgu: String): BguData?{
+    fun BGU(bgu: String): BguData{
         val parts = bgu.split(",")
         if (parts.size != 3) {
-            return null
+            val protein = ""
+            val fats = ""
+            val carbohydrates = ""
+            return BguData(protein, fats, carbohydrates)
         }
         return try {
             val protein = parts[0].trim()
@@ -180,8 +159,35 @@ class AppViewModel(application: Application) : AndroidViewModel(application)  {
             val carbohydrates = parts[2].trim()
             BguData(protein, fats, carbohydrates)
         } catch (e: NumberFormatException) {
-            null
+            val protein = ""
+            val fats = ""
+            val carbohydrates = ""
+            BguData(protein, fats, carbohydrates)
         }
+    }
+
+    fun calculateTotals(products: List<SavedProduct>): Map<String, Double> {
+        var totalKcal = 0.0
+        var totalProtein = 0.0
+        var totalFats = 0.0
+        var totalCarbohydrates = 0.0
+        var totalWeight = 0.0
+
+        products.forEach { product ->
+            totalKcal += product.kcal.toDoubleOrNull() ?: 0.0
+            totalProtein += (product.protein).toDouble()
+            totalFats += (product.fats).toDouble()
+            totalCarbohydrates += (product.carbohydrates).toDouble()
+            totalWeight += product.weight.toDoubleOrNull() ?: 0.0
+        }
+
+        return mapOf(
+            "totalKcal" to totalKcal,
+            "totalProtein" to totalProtein,
+            "totalFats" to totalFats,
+            "totalCarbohydrates" to totalCarbohydrates,
+            "totalWeight" to totalWeight
+        )
     }
     
 }

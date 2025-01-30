@@ -10,7 +10,7 @@ import com.example.caloriesapp.data.model.SavedProduct
 
 @Database(
     entities = [SavedProduct::class], // Указываем, какие таблицы есть в базе
-    version = 1 // Версия базы данных
+    version = 2 // Версия базы данных
 )
 abstract class AppDatabase : RoomDatabase() {
 

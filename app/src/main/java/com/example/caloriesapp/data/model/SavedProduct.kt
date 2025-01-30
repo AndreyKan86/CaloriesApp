@@ -7,8 +7,10 @@ import androidx.room.PrimaryKey
 data class SavedProduct(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String, // Название продукта
-    val bgu: String, // БЖУ
     val kcal: String, // Ккал
+    val protein: String,
+    val fats: String,
+    val carbohydrates: String,
     val weight: String // Вес
 )
 

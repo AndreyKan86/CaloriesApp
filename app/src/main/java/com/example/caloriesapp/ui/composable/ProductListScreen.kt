@@ -43,6 +43,8 @@ fun SavedProductsScreen(viewModel: AppViewModel = viewModel()) {
 
     val allSavedProducts by viewModel.allSavedProducts.collectAsState()
 
+    val totals = viewModel.calculateTotals(allSavedProducts)
+
     LaunchedEffect(Unit) {
         viewModel.loadAllSavedProducts()
     }
@@ -77,7 +79,14 @@ fun SavedProductsScreen(viewModel: AppViewModel = viewModel()) {
 
         // Итоговая строка (фиксированная строка)
         SixColumnTableRow(
-            data = listOf("Итого", "", "", "", "", ""),
+            data = listOf(
+                "Итого",
+                String.format("%.2f", totals["totalKcal"]),
+                String.format("%.2f", totals["totalProtein"]),
+                String.format("%.2f", totals["totalFats"]),
+                String.format("%.2f", totals["totalCarbohydrates"]),
+                String.format("%.2f", totals["totalWeight"])
+            ),
             weights = listOf(2f, 1f, 1f, 1f, 1f, 1f),
             rowBackgroundColor = Color.Red
         )
@@ -86,17 +95,14 @@ fun SavedProductsScreen(viewModel: AppViewModel = viewModel()) {
 
 @Composable
 fun ProductItem(product: SavedProduct, viewModel: AppViewModel, tableData: MutableList<List<String>>) {
-    val bguData = viewModel.BGU(product.bgu)
-    val protein = viewModel.convertBGU(bguData?.protein) * viewModel.convertBGU(product.weight) / 100.0
-    val fats = viewModel.convertBGU(bguData?.fats) * viewModel.convertBGU(product.weight) / 100.0
-    val carbohydrates = viewModel.convertBGU(bguData?.carbohydrates) * viewModel.convertBGU(product.weight) / 100.0
+
     tableData.add(
         listOf(
             product.name,
             product.kcal,
-            String.format("%.2f",protein),
-            String.format("%.2f",fats),
-            String.format("%.2f", carbohydrates),
+            String.format("%.2f",(product.protein).toDouble()),
+            String.format("%.2f",(product.fats).toDouble()),
+            String.format("%.2f", (product.carbohydrates.toDouble())),
             product.weight
         )
     )
