@@ -1,12 +1,17 @@
 package com.example.caloriesapp.ui.composable
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.Divider
@@ -46,8 +51,36 @@ fun SavedProductsScreen(viewModel: AppViewModel = viewModel()) {
         ProductItem(product = product, viewModel = viewModel, tableData = tableData)
     }
 
-    Column {
-        SixColumnTable(data = tableData)
+    Column(modifier = Modifier.fillMaxSize()) {
+        SixColumnTableRow(
+            isHeader = true,
+            data = listOf("Name", "kCal", "Protein", "Fats", "Carbohydrates", "Weight"),
+            weights = listOf(2f, 1f, 1f, 1f, 1f, 1f),
+            headerBackgroundColor = Color.DarkGray, // Изменяем цвет фона заголовка
+            headerTextColor = Color.White // Изменяем цвет текста заголовка
+        )
+
+        // Прокручиваемая область с данными
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            items(tableData.size) { index ->
+                SixColumnTableRow(
+                    data = tableData[index],
+                    weights = listOf(2f, 1f, 1f, 1f, 1f, 1f),
+                    rowBackgroundColor = Color.LightGray
+                )
+            }
+        }
+
+        // Итоговая строка (фиксированная строка)
+        SixColumnTableRow(
+            data = listOf("Итого", "", "", "", "", ""),
+            weights = listOf(2f, 1f, 1f, 1f, 1f, 1f),
+            rowBackgroundColor = Color.Red
+        )
     }
 }
 
@@ -61,56 +94,64 @@ fun ProductItem(product: SavedProduct, viewModel: AppViewModel, tableData: Mutab
         listOf(
             product.name,
             product.kcal,
-            String.format("%.3f",protein),
-            String.format("%.3f",fats),
-            String.format("%.3f", carbohydrates),
+            String.format("%.2f",protein),
+            String.format("%.2f",fats),
+            String.format("%.2f", carbohydrates),
             product.weight
         )
     )
 }
 
 @Composable
-fun SixColumnTable(data: List<List<String>>) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(6),
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(2.dp)
-    ) {
-        // Заголовок таблицы
-        item { TableCell(text = "Name", isHeader = true) }
-        item { TableCell(text = "kCal", isHeader = true) }
-        item { TableCell(text = "Protein", isHeader = true) }
-        item { TableCell(text = "Fats", isHeader = true) }
-        item { TableCell(text = "Carbohydrates", isHeader = true) }
-        item { TableCell(text = "Weight", isHeader = true) }
-
-        // Данные таблицы
-        items(data.size * 6) { index ->
-            val rowIndex = index / 6
-            val columnIndex = index % 6
-            if (rowIndex < data.size && columnIndex < data[rowIndex].size) {
-                TableCell(text = data[rowIndex][columnIndex])
-            }
+fun SixColumnTableRow(
+    data: List<String>,
+    isHeader: Boolean = false,
+    weights: List<Float> = listOf(1f, 1f, 1f, 1f, 1f, 1f),
+    headerBackgroundColor: Color = Color.Gray,
+    headerTextColor: Color = Color.Black,
+    headerFontWeight: FontWeight = FontWeight.Bold,
+    rowBackgroundColor: Color = Color.LightGray,
+    rowTextColor: Color = Color.Black,
+    rowFontWeight: FontWeight = FontWeight.Normal
+) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        data.forEachIndexed { index, cellData ->
+            TableCell(
+                text = cellData,
+                isHeader = isHeader,
+                modifier = Modifier.weight(weights[index]),
+                backgroundColor = if (isHeader) headerBackgroundColor else rowBackgroundColor,
+                textColor = if (isHeader) headerTextColor else rowTextColor,
+                fontWeight = if (isHeader) headerFontWeight else rowFontWeight
+            )
         }
     }
 }
 
-
 @Composable
-fun TableCell(text: String, isHeader: Boolean = false) {
+fun TableCell(
+    text: String,
+    isHeader: Boolean = false,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = if (isHeader) Color.Gray else Color.LightGray,
+    textColor: Color = Color.Black,
+    fontWeight: FontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal
+) {
     Box(
-        modifier = Modifier
-            .background(if (isHeader) Color.Gray else Color.LightGray)
-            .padding(8.dp),
+        modifier = modifier
+            .background(backgroundColor)
+            .padding(8.dp)
+            .height(40.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
             textAlign = TextAlign.Center,
-            fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
+            color = textColor,
+            fontWeight = fontWeight,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Visible // Изменено
+
         )
     }
 }
-

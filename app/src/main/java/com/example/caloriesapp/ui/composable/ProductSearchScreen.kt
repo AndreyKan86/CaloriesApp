@@ -33,6 +33,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -128,7 +129,7 @@ fun ProductList(
             LazyColumn(
                 modifier = Modifier
                     .zIndex(1f)
-                    .alpha(0.7f)
+                    .alpha(0.9f)
                     .fillMaxWidth()
             ) {
                 items(products) { product ->
@@ -155,7 +156,9 @@ fun ProductItem(product: Product, onClick: () -> Unit) {
     ) {
         Text(
             text = "${product.name}",
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
+            color = Color.Red,
+            fontFamily = FontFamily.Serif
         )
     }
 }
