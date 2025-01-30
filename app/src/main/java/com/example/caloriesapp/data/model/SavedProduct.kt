@@ -15,3 +15,4 @@ data class SavedProduct(
 )
 
 data class BguData(val protein: String, val fats: String, val carbohydrates: String)
+

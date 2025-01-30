@@ -10,7 +10,6 @@ class SavedProductRepository(context: Context) {
     private val savedProductDao: UserDao
 
     init {
-        // Получаем базу данных и DAO
         val db = AppDatabase.getDatabase(context)
         savedProductDao = db.userDao()
     }

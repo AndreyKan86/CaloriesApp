@@ -189,5 +189,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application)  {
             "totalWeight" to totalWeight
         )
     }
-    
+
+    fun deleteProduct(product: SavedProduct) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteById(product.id)
+            loadAllSavedProducts()
+        }
+    }
 }
